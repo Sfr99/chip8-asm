@@ -1,8 +1,11 @@
 mod lexer;
+mod parser;
 
 use lexer::tokenize;
+use parser::parse;
 
 fn main() {
-    let tokens = tokenize("loop: LD V3, #42");
-    println!("{:?}", tokens);
+    let tokens = tokenize("CLS\nLD V3, #42");
+    let instructions = parse(tokens);
+    println!("{:?}", instructions);
 }
