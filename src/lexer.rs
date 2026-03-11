@@ -8,7 +8,7 @@ pub enum Token {
     NewLine,
 }
 
-pub fn lexer(entry: &str) -> Vec<Token> {
+pub fn tokenize(entry: &str) -> Vec<Token> {
     let chars: Vec<char> = entry.chars().collect();
     let mut i = 0;
     let mut tokens: Vec<Token> = Vec::new();
