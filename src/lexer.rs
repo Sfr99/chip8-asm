@@ -6,6 +6,8 @@ pub enum Token {
     Colon,
     Comma,
     NewLine,
+    LBracket,
+    RBracket,
 }
 
 pub fn tokenize(entry: &str) -> Vec<Token> {
@@ -33,6 +35,14 @@ pub fn tokenize(entry: &str) -> Vec<Token> {
                 }
             }
             ' ' => {
+                i += 1;
+            }
+            '[' => {
+                tokens.push(Token::LBracket);
+                i += 1;
+            }
+            ']' => {
+                tokens.push(Token::RBracket);
                 i += 1;
             }
             _ => {

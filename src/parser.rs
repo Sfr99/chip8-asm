@@ -9,6 +9,9 @@ pub enum Operand {
     ST,
     Immediate(u16),
     Key,
+    F,
+    B,
+    IDeref,
 }
 
 #[derive(Debug)]
@@ -88,6 +91,10 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
                                 Operand::ST
                             } else if op_name == "K" {
                                 Operand::Key
+                            } else if op_name == "F" {
+                                Operand::F
+                            } else if op_name == "B" {
+                                Operand::B
                             } else {
                                 panic!("Unknown operand: {}", op_name)
                             };
@@ -98,6 +105,10 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
                         }
                         Token::Comma => {}
                         Token::NewLine => break,
+                        Token::LBracket => {
+                            i += 2;
+                            operands.push(Operand::IDeref);
+                        }
                         _ => break,
                     }
                     i += 1;
@@ -108,6 +119,8 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
             Token::Comma => {}
             Token::Colon => {}
             Token::NewLine => {}
+            Token::LBracket => {}
+            Token::RBracket => {}
         }
         i += 1;
     }

@@ -103,6 +103,7 @@ pub fn generate(instructions: Vec<Instruction>) -> Vec<u8> {
                             }
                             Operand::DT => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x07),
                             Operand::Key => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x0A),
+                            Operand::IDeref => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x65),
                             _ => panic!("Invalid operand for LD"),
                         };
                     }
@@ -118,7 +119,18 @@ pub fn generate(instructions: Vec<Instruction>) -> Vec<u8> {
                         Operand::Register(x) => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x18),
                         _ => panic!("LD ST expects register"),
                     },
-
+                    Operand::F => match ops[1] {
+                        Operand::Register(x) => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x29),
+                        _ => panic!("LD F expects register"),
+                    },
+                    Operand::B => match ops[1] {
+                        Operand::Register(x) => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x33),
+                        _ => panic!("LD B expects register"),
+                    },
+                    Operand::IDeref => match ops[1] {
+                        Operand::Register(x) => emit(&mut bytes, 0xF000 | ((x as u16) << 8) | 0x55),
+                        _ => panic!("LD [I] expects register"),
+                    },
                     _ => panic!("Invalid operand for LD"),
                 };
             }
