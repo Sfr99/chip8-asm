@@ -124,7 +124,7 @@ pub fn parse(tokens: Vec<Token>) -> (Vec<Instruction>, HashMap<String, usize>) {
                 }
                 instructions.push(Instruction { mnemonic, operands });
             }
-            Token::Number(num) => {}
+            Token::Number(_) => {}
             Token::Comma => {}
             Token::Colon => {}
             Token::NewLine => {}
