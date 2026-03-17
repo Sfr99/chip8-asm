@@ -1,5 +1,6 @@
 /* chip8-asm -- MIT License -- Javier Salafranca Pradilla -- 2026*/
 use crate::lexer::Token;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Operand {
@@ -12,6 +13,7 @@ pub enum Operand {
     F,
     B,
     IDeref,
+    Label(String),
 }
 
 #[derive(Debug)]
@@ -44,13 +46,19 @@ pub struct Instruction {
     pub operands: Vec<Operand>,
 }
 
-pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
+pub fn parse(tokens: Vec<Token>) -> (Vec<Instruction>, HashMap<String, usize>) {
     let mut i = 0;
     let mut instructions: Vec<Instruction> = Vec::new();
+    let mut labels: HashMap<String, usize> = HashMap::new();
 
     while i < tokens.len() {
         match &tokens[i] {
             Token::Identifier(name) => {
+                if i + 1 < tokens.len() && tokens[i + 1] == Token::Colon {
+                    labels.insert(name.clone(), instructions.len());
+                    i += 2;
+                    continue;
+                }
                 let mnemonic = match name.as_str() {
                     "CLS" => Mnemonic::CLS,
                     "RET" => Mnemonic::RET,
@@ -74,6 +82,7 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
                     "SKNP" => Mnemonic::SKNP,
                     _ => panic!("Unknown mnemonic: {}", name),
                 };
+
                 i += 1;
                 let mut operands: Vec<Operand> = Vec::new();
                 while i < tokens.len() {
@@ -96,7 +105,7 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
                             } else if op_name == "B" {
                                 Operand::B
                             } else {
-                                panic!("Unknown operand: {}", op_name)
+                                Operand::Label(op_name.clone())
                             };
                             operands.push(operand);
                         }
@@ -124,5 +133,5 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Instruction> {
         }
         i += 1;
     }
-    instructions
+    (instructions, labels)
 }

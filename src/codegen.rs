@@ -2,13 +2,14 @@
 use crate::parser::Instruction;
 use crate::parser::Mnemonic;
 use crate::parser::Operand;
+use std::collections::HashMap;
 
 fn emit(bytes: &mut Vec<u8>, opcode: u16) {
     bytes.push((opcode >> 8) as u8);
     bytes.push((opcode & 0xFF) as u8);
 }
 
-pub fn generate(instructions: Vec<Instruction>) -> Vec<u8> {
+pub fn generate(instructions: Vec<Instruction>, labels: HashMap<String, usize>) -> Vec<u8> {
     let mut i = 0;
     let mut bytes: Vec<u8> = Vec::new();
 
@@ -26,18 +27,24 @@ pub fn generate(instructions: Vec<Instruction>) -> Vec<u8> {
             }
             Mnemonic::JP => {
                 let ops = &instructions[i].operands;
-                match ops[0] {
+                match &ops[0] {
                     Operand::Immediate(addr) => {
                         emit(&mut bytes, 0x1000 | addr);
+                    }
+                    Operand::Label(label) => {
+                        emit(&mut bytes, 0x1000 | ((0x200 + (labels[label] * 2)) as u16));
                     }
                     _ => panic!("Invalid operand for JP"),
                 }
             }
             Mnemonic::CALL => {
                 let ops = &instructions[i].operands;
-                match ops[0] {
+                match &ops[0] {
                     Operand::Immediate(addr) => {
                         emit(&mut bytes, 0x2000 | addr);
+                    }
+                    Operand::Label(label) => {
+                        emit(&mut bytes, 0x2000 | ((0x200 + (labels[label] * 2)) as u16));
                     }
                     _ => panic!("Invalid operand for CALL"),
                 }

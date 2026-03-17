@@ -1,5 +1,5 @@
 /* chip8-asm -- MIT License -- Javier Salafranca Pradilla -- 2026*/
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Identifier(String),
     Number(u16),
