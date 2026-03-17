@@ -2,7 +2,7 @@
 use crate::lexer::Token;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Operand {
     Register(u8),
     IRegister,
@@ -16,7 +16,7 @@ pub enum Operand {
     Label(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Mnemonic {
     CLS,
     RET,
@@ -40,7 +40,7 @@ pub enum Mnemonic {
     SHL,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Instruction {
     pub mnemonic: Mnemonic,
     pub operands: Vec<Operand>,
@@ -134,4 +134,120 @@ pub fn parse(tokens: Vec<Token>) -> (Vec<Instruction>, HashMap<String, usize>) {
         i += 1;
     }
     (instructions, labels)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lexer::tokenize;
+
+    #[test]
+    fn test_no_operands() {
+        let tokens = tokenize("CLS\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::CLS,
+                operands: vec![],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_one_operand() {
+        let tokens = tokenize("JP #200\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::JP,
+                operands: vec![Operand::Immediate(0x200)],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_two_operands() {
+        let tokens = tokenize("LD V3, #42\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::LD,
+                operands: vec![Operand::Register(3), Operand::Immediate(0x42)],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_three_operands() {
+        let tokens = tokenize("DRW V0, V1, #5\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::DRW,
+                operands: vec![
+                    Operand::Register(0),
+                    Operand::Register(1),
+                    Operand::Immediate(0x5)
+                ],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_special_operands() {
+        let tokens = tokenize("LD DT, V0\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::LD,
+                operands: vec![Operand::DT, Operand::Register(0)],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_ideref() {
+        let tokens = tokenize("LD [I], V5\n");
+        let (instructions, _) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::LD,
+                operands: vec![Operand::IDeref, Operand::Register(5)],
+            }]
+        );
+    }
+
+    #[test]
+    fn test_label_definition() {
+        let tokens = tokenize("loop:\nCLS\n");
+        let (instructions, labels) = parse(tokens);
+        assert_eq!(
+            instructions,
+            vec![Instruction {
+                mnemonic: Mnemonic::CLS,
+                operands: vec![],
+            }]
+        );
+        assert_eq!(labels["loop"], 0);
+    }
+
+    #[test]
+    fn test_label_reference() {
+        let tokens = tokenize("start:\nLD V0, #1\nJP start\n");
+        let (instructions, labels) = parse(tokens);
+        assert_eq!(
+            instructions[1],
+            Instruction {
+                mnemonic: Mnemonic::JP,
+                operands: vec![Operand::Label("start".to_string())],
+            }
+        );
+        assert_eq!(labels["start"], 0);
+    }
 }

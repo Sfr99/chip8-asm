@@ -67,3 +67,92 @@ pub fn tokenize(entry: &str) -> Vec<Token> {
     }
     tokens
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_tokens() {
+        let tokens = tokenize("LD V3, #42\n");
+        let expected = vec![
+            Token::Identifier("LD".to_string()),
+            Token::Identifier("V3".to_string()),
+            Token::Comma,
+            Token::Number(0x42),
+            Token::NewLine,
+        ];
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn test_comments() {
+        let tokens = tokenize("LD V3, #42 ; This is a comment\n");
+        let expected = vec![
+            Token::Identifier("LD".to_string()),
+            Token::Identifier("V3".to_string()),
+            Token::Comma,
+            Token::Number(0x42),
+            Token::NewLine,
+        ];
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn test_brackets() {
+        let tokens = tokenize("LD V0, [I]\n");
+        let expected = vec![
+            Token::Identifier("LD".to_string()),
+            Token::Identifier("V0".to_string()),
+            Token::Comma,
+            Token::LBracket,
+            Token::Identifier("I".to_string()),
+            Token::RBracket,
+            Token::NewLine,
+        ];
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn test_labels() {
+        let tokens = tokenize("start:\nLD V0, #0\n");
+        let expected = vec![
+            Token::Identifier("start".to_string()),
+            Token::Colon,
+            Token::NewLine,
+            Token::Identifier("LD".to_string()),
+            Token::Identifier("V0".to_string()),
+            Token::Comma,
+            Token::Number(0x0),
+            Token::NewLine,
+        ];
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn complex_example() {
+        let tokens = tokenize("loop:\n  LD V0, #FF\n  LD [I], V0\n  ; comment\n  JP loop\n");
+        let expected = vec![
+            Token::Identifier("loop".to_string()),
+            Token::Colon,
+            Token::NewLine,
+            Token::Identifier("LD".to_string()),
+            Token::Identifier("V0".to_string()),
+            Token::Comma,
+            Token::Number(0xFF),
+            Token::NewLine,
+            Token::Identifier("LD".to_string()),
+            Token::LBracket,
+            Token::Identifier("I".to_string()),
+            Token::RBracket,
+            Token::Comma,
+            Token::Identifier("V0".to_string()),
+            Token::NewLine,
+            Token::NewLine,
+            Token::Identifier("JP".to_string()),
+            Token::Identifier("loop".to_string()),
+            Token::NewLine,
+        ];
+        assert_eq!(tokens, expected);
+    }
+}
